@@ -6,6 +6,7 @@ python main_tank.py 로 실행.
 
 import os
 import sys
+sys.stdout.reconfigure(encoding='utf-8')
 
 # 프로젝트 루트가 sys.path에 없을 경우를 대비
 sys.path.insert(0, os.path.dirname(__file__))
@@ -22,9 +23,9 @@ if __name__ == '__main__':
         save_path='results/',
     )
 
-    print(f"\n=== 최종 Waypoint 상위 {min(3, len(output['waypoints']))}개 ===")
+    print(f"\n=== 최종 탐색 지점 상위 {min(3, len(output['waypoints']))}개 ===")
     for wp in output['waypoints'][:3]:
-        print(f"  Rank {wp['rank']:2d}: H3={wp['h3_index'][-8:]}, "
+        print(f"  순위 {wp['rank']:2d}위: H3={wp['h3_index'][-8:]}, "
               f"확률={wp['probability']*100:.2f}%, "
               f"위치=({wp['centroid_lat']:.7f}, {wp['centroid_lon']:.7f})")
 

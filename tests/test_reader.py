@@ -7,6 +7,7 @@ import math
 import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+sys.stdout.reconfigure(encoding='utf-8')
 
 import numpy as np
 from tank.tank_reader import TankReader
@@ -25,7 +26,7 @@ def test_get_variables_shape():
     )
     assert len(result['x_sea_water_velocity']) == 3, "배열 크기 불일치"
     assert len(result['y_sea_water_velocity']) == 3, "배열 크기 불일치"
-    print("[PASS] test_get_variables_shape")
+    print("[통과] 유속 배열 크기 검증")
 
 
 def test_get_variables_values():
@@ -37,7 +38,7 @@ def test_get_variables_values():
     )
     assert np.allclose(result['x_sea_water_velocity'], 0.07), "u 값 오류"
     assert np.allclose(result['y_sea_water_velocity'], 0.02), "v 값 오류"
-    print("[PASS] test_get_variables_values")
+    print("[통과] 유속 반환값 검증")
 
 
 def test_update_flow():
@@ -49,7 +50,7 @@ def test_update_flow():
         x=np.array([126.7]), y=np.array([37.5]),
     )
     assert np.allclose(result['x_sea_water_velocity'], 0.10), "update_flow 미반영"
-    print("[PASS] test_update_flow")
+    print("[통과] 유속 실시간 갱신 검증")
 
 
 def test_bounding_box():
@@ -63,7 +64,7 @@ def test_bounding_box():
 
     assert abs(reader.lat_max - expected_lat_max) < 1e-9, "lat_max 계산 오류"
     assert abs(reader.lon_max - expected_lon_max) < 1e-9, "lon_max 계산 오류"
-    print("[PASS] test_bounding_box")
+    print("[통과] 경계 상자 계산 검증")
 
 
 if __name__ == '__main__':

@@ -83,9 +83,9 @@ def run_tank_simulation(
     # CHECKPOINT 1: 파티클 수 확인
     initial_count = model.num_elements_total()
     assert initial_count == N_PARTICLES, (
-        f"[FAIL] 파티클 초기화: 기대={N_PARTICLES}, 실제={initial_count}"
+        f"[실패] 파티클 초기화: 기대={N_PARTICLES}, 실제={initial_count}"
     )
-    print(f"[CHECKPOINT 1] 파티클 초기화 완료: {initial_count}개")
+    print(f"[체크포인트 1] 파티클 초기화 완료: {initial_count}개")
 
     # ── 3) 시뮬레이션 실행 ──────────────────────────────────────────────
     model.run(
@@ -100,27 +100,27 @@ def run_tank_simulation(
 
     # CHECKPOINT 2: 경계 조건 검증
     _assert_boundary(final_lats, final_lons)
-    print("[CHECKPOINT 2] 경계 조건 통과: 모든 파티클 수조 내부 확인")
+    print("[체크포인트 2] 경계 조건 통과: 모든 파티클 수조 내부 확인")
 
     # CHECKPOINT 3: 파티클 보존율
     active_count = model.num_elements_active()
     loss_rate = 1.0 - active_count / N_PARTICLES
-    print(f"[CHECKPOINT 3] 활성 파티클: {active_count}/{N_PARTICLES} "
+    print(f"[체크포인트 3] 활성 파티클: {active_count}/{N_PARTICLES} "
           f"(손실률 {loss_rate*100:.1f}%)")
     if loss_rate > 0.05:
-        print("  [경고] 파티클 5% 이상 손실. deactivate_stranded 설정 확인 필요.")
+        print("  [경고] 파티클 5% 이상 손실. landmask 설정 확인 필요.")
 
     # ── 4) H3 빈닝 ──────────────────────────────────────────────────────
     heatmap = particles_to_h3_heatmap(final_lats, final_lons, H3_RESOLUTION)
 
     # CHECKPOINT 4: H3 커버리지
     assert validate_h3_coverage(heatmap, min_cells=1), \
-        "[FAIL] H3 커버리지 0%! 좌표계 오류 확인"
-    print(f"[CHECKPOINT 4] H3 셀 {len(heatmap)}개 생성됨")
+        "[실패] H3 커버리지 0% — 좌표계 오류 확인"
+    print(f"[체크포인트 4] H3 셀 {len(heatmap)}개 생성됨")
 
     # ── 5) Waypoint 추출 ────────────────────────────────────────────────
     waypoints = filter_waypoints(heatmap, threshold=WAYPOINT_THRESHOLD)
-    print(f"[CHECKPOINT 5] Waypoint {len(waypoints)}개 "
+    print(f"[체크포인트 5] 탐색 지점 {len(waypoints)}개 "
           f"(임계값 {WAYPOINT_THRESHOLD*100:.1f}% 이상)")
 
     # ── 6) 시각화 ────────────────────────────────────────────────────────
@@ -143,7 +143,7 @@ def run_tank_simulation(
     json_path = os.path.join(save_path, f'waypoints_{ts}.json')
     with open(json_path, 'w', encoding='utf-8') as f:
         json.dump(output, f, indent=2, ensure_ascii=False)
-    print(f"[DONE] 결과 저장: {json_path}")
+    print(f"[완료] 결과 저장: {json_path}")
 
     return output
 
@@ -160,7 +160,7 @@ def _assert_boundary(lats: np.ndarray, lons: np.ndarray) -> None:
     out_lon = int(np.sum((lons < TANK_ORIGIN_LON) | (lons > lon_max)))
     if out_lat > 0 or out_lon > 0:
         raise AssertionError(
-            f"[FAIL] 경계 조건 위반: 위도 초과={out_lat}개, 경도 초과={out_lon}개"
+            f"[실패] 경계 조건 위반: 위도 초과={out_lat}개, 경도 초과={out_lon}개"
         )
 
 
@@ -210,4 +210,4 @@ def _visualize(heatmap: dict, lats: np.ndarray, lons: np.ndarray,
     png_path = os.path.join(save_path, f'heatmap_{ts}.png')
     plt.savefig(png_path, dpi=150)
     plt.close()
-    print(f"[VIZ] 히트맵 저장: {png_path}")
+    print(f"[시각화] 히트맵 저장: {png_path}")

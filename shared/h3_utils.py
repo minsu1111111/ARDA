@@ -74,5 +74,5 @@ def filter_waypoints(
 def validate_h3_coverage(heatmap: Dict[str, dict], min_cells: int = 1) -> bool:
     """H3 커버리지가 0%가 아닌지 확인하는 검증 체크포인트."""
     coverage = len(heatmap)
-    print(f"[VALIDATE] H3 셀 수: {coverage} (최소 요구: {min_cells})")
+    print(f"[검증] H3 셀 수: {coverage} (최소 요구: {min_cells})")
     return coverage >= min_cells

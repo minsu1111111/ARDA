@@ -8,6 +8,7 @@ import math
 import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+sys.stdout.reconfigure(encoding='utf-8')
 
 from datetime import datetime, timedelta
 
@@ -32,11 +33,10 @@ def test_no_particles_escape():
     """10초 실행 후 모든 파티클이 수조 경계 내부에 있는지 확인."""
     lat_min, lat_max, lon_min, lon_max = _bounds()
 
-    # 경계 바로 안쪽에 파티클 시드
     entry_lat = lat_min + (lat_max - lat_min) * 0.9
     entry_lon = lon_min + (lon_max - lon_min) * 0.9
 
-    reader = TankReader(u_pump_ms=0.20, v_pump_ms=0.10)  # 빠른 유속으로 스트레스 테스트
+    reader = TankReader(u_pump_ms=0.20, v_pump_ms=0.10)
     model = TankDriftModel(loglevel=50)
     model.add_reader(reader)
     TankDriftModel.apply_tank_config(model)
@@ -57,15 +57,14 @@ def test_no_particles_escape():
     out_lat = int(np.sum((final_lats < lat_min) | (final_lats > lat_max)))
     out_lon = int(np.sum((final_lons < lon_min) | (final_lons > lon_max)))
 
-    assert out_lat == 0, f"[FAIL] 위도 초과 파티클: {out_lat}개"
-    assert out_lon == 0, f"[FAIL] 경도 초과 파티클: {out_lon}개"
-    print("[PASS] test_no_particles_escape -- 파티클 이탈 없음")
+    assert out_lat == 0, f"[실패] 위도 초과 파티클: {out_lat}개"
+    assert out_lon == 0, f"[실패] 경도 초과 파티클: {out_lon}개"
+    print("[통과] 파티클 경계 이탈 없음 검증")
 
 
 def test_deactivate_stranded_disabled():
     """파티클이 비활성화되지 않고 모두 살아있는지 확인."""
-    _, _, lon_min, lon_max = _bounds()
-    lat_min, lat_max, _, _ = _bounds()
+    lat_min, lat_max, lon_min, lon_max = _bounds()
 
     entry_lat = (lat_min + lat_max) / 2
     entry_lon = (lon_min + lon_max) / 2
@@ -88,9 +87,9 @@ def test_deactivate_stranded_disabled():
     active = model.num_elements_active()
     loss_rate = 1.0 - active / 100
     assert loss_rate < 0.05, (
-        f"[FAIL] 파티클 손실율 {loss_rate*100:.1f}% -- landmask 설정 확인 필요"
+        f"[실패] 파티클 손실률 {loss_rate*100:.1f}% — landmask 설정 확인 필요"
     )
-    print(f"[PASS] test_deactivate_stranded_disabled -- 활성 파티클 {active}/100")
+    print(f"[통과] 파티클 비활성화 방지 검증: 활성 {active}/100개")
 
 
 if __name__ == '__main__':

@@ -7,6 +7,7 @@ import math
 import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+sys.stdout.reconfigure(encoding='utf-8')
 
 import numpy as np
 from shared.h3_utils import particles_to_h3_heatmap, filter_waypoints, validate_h3_coverage
@@ -29,16 +30,16 @@ def test_probabilities_sum_to_one():
     lats, lons = _random_particles(200)
     heatmap = particles_to_h3_heatmap(lats, lons, resolution=15)
     total = sum(v['probability'] for v in heatmap.values())
-    assert abs(total - 1.0) < 1e-5, f"[FAIL] 확률 합 = {total:.8f} (기대: 1.0)"
-    print(f"[PASS] test_probabilities_sum_to_one -- 합={total:.8f}")
+    assert abs(total - 1.0) < 1e-5, f"[실패] 확률 합 = {total:.8f} (기대: 1.0)"
+    print(f"[통과] 확률 합계 검증: {total:.8f}")
 
 
 def test_h3_coverage_nonzero():
     """H3 셀이 1개 이상 생성되는지 확인."""
     lats, lons = _random_particles(100)
     heatmap = particles_to_h3_heatmap(lats, lons, resolution=15)
-    assert validate_h3_coverage(heatmap, min_cells=1), "[FAIL] H3 커버리지 0"
-    print(f"[PASS] test_h3_coverage_nonzero -- 셀 수={len(heatmap)}")
+    assert validate_h3_coverage(heatmap, min_cells=1), "[실패] H3 커버리지 0"
+    print(f"[통과] H3 커버리지 검증: 셀 {len(heatmap)}개")
 
 
 def test_filter_waypoints_threshold():
@@ -50,16 +51,15 @@ def test_filter_waypoints_threshold():
 
     for wp in waypoints:
         assert wp['probability'] >= threshold, (
-            f"[FAIL] 임계값 미만 waypoint 포함: {wp['probability']}"
+            f"[실패] 임계값 미만 waypoint 포함: {wp['probability']}"
         )
-    # 확률 내림차순 정렬 확인
     probs = [wp['probability'] for wp in waypoints]
-    assert probs == sorted(probs, reverse=True), "[FAIL] waypoint 정렬 오류"
-    print(f"[PASS] test_filter_waypoints_threshold -- waypoint 수={len(waypoints)}")
+    assert probs == sorted(probs, reverse=True), "[실패] waypoint 정렬 오류"
+    print(f"[통과] 임계값 필터 검증: waypoint {len(waypoints)}개")
 
 
 def test_output_schema_structure():
-    """JSON 출력 스키마 필드 구조 확인 (이다빈 교차 파싱용)."""
+    """JSON 출력 스키마 필드 구조 확인."""
     lats, lons = _random_particles(100)
     heatmap = particles_to_h3_heatmap(lats, lons, resolution=15)
     waypoints = filter_waypoints(heatmap)
@@ -75,18 +75,18 @@ def test_output_schema_structure():
     required_keys = {'rank', 'h3_index', 'probability', 'centroid_lat', 'centroid_lon', 'count'}
     for wp in output['waypoints']:
         missing = required_keys - wp.keys()
-        assert not missing, f"[FAIL] 필드 누락: {missing}"
+        assert not missing, f"[실패] 필드 누락: {missing}"
 
-    print(f"[PASS] test_output_schema_structure -- waypoint 수={len(output['waypoints'])}")
+    print(f"[통과] JSON 스키마 구조 검증: waypoint {len(output['waypoints'])}개")
 
 
 def test_empty_particles_raises():
     """빈 파티클 배열 전달 시 ValueError 발생 확인."""
     try:
         particles_to_h3_heatmap(np.array([]), np.array([]))
-        assert False, "[FAIL] ValueError가 발생하지 않음"
+        assert False, "[실패] ValueError가 발생하지 않음"
     except ValueError:
-        print("[PASS] test_empty_particles_raises")
+        print("[통과] 빈 배열 예외 처리 검증")
 
 
 if __name__ == '__main__':
