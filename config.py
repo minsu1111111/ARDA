@@ -22,7 +22,7 @@ ENVIRONMENT = 'tank'   # 'tank' | 'han_river'
 if ENVIRONMENT == 'tank':
     # 강민수 — 수조 검증 환경
     H3_RESOLUTION          = 15      # 엣지 ~0.5m, 수조에 10~15개 셀
-    HORIZONTAL_DIFFUSIVITY = 0.001   # 수조: 확산 최소화
+    HORIZONTAL_DIFFUSIVITY = 0.02    # sqrt(2*0.02*300)≈3.5m → 수조 내 충분한 퍼짐
     TANK_ORIGIN_LAT        = 37.500000
     TANK_ORIGIN_LON        = 126.700000
     TANK_LENGTH_M          = 1.0     # x방향 (경도)

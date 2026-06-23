@@ -186,24 +186,33 @@ def _visualize(heatmap: dict, lats: np.ndarray, lons: np.ndarray,
     """
     lat_per_m = 1.0 / 111000.0
     lon_per_m = 1.0 / (111000.0 * math.cos(math.radians(TANK_ORIGIN_LAT)))
-    lat_ext = TANK_WIDTH_M  * lat_per_m
-    lon_ext = TANK_LENGTH_M * lon_per_m
+
+    # 위경도 → 미터 변환 (수조 원점 기준)
+    # 도 단위 1e-6 수준 좌표는 hexbin 부동소수점 정밀도 문제 발생 → 미터로 변환
+    lons_m = (lons - TANK_ORIGIN_LON) / lon_per_m
+    lats_m = (lats - TANK_ORIGIN_LAT) / lat_per_m
 
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
 
-    # 좌: 파티클 산포도
+    # 좌: 파티클 밀도 hexbin (미터 좌표)
     ax1 = axes[0]
-    ax1.scatter(lons, lats, s=2, alpha=0.5, c='royalblue', label=f'파티클 (N={len(lats)})')
+    hb = ax1.hexbin(
+        lons_m, lats_m,
+        gridsize=20,
+        cmap='YlOrRd',
+        extent=[0, TANK_LENGTH_M, 0, TANK_WIDTH_M],
+    )
+    fig.colorbar(hb, ax=ax1, label='파티클 수')
     rect = patches.Rectangle(
-        (TANK_ORIGIN_LON, TANK_ORIGIN_LAT), lon_ext, lat_ext,
+        (0, 0), TANK_LENGTH_M, TANK_WIDTH_M,
         linewidth=2, edgecolor='red', facecolor='none', label='수조 경계',
     )
     ax1.add_patch(rect)
-    ax1.set_xlim(TANK_ORIGIN_LON - lon_ext * 0.1, TANK_ORIGIN_LON + lon_ext * 1.1)
-    ax1.set_ylim(TANK_ORIGIN_LAT - lat_ext * 0.1, TANK_ORIGIN_LAT + lat_ext * 1.1)
-    ax1.set_title('파티클 최종 분포')
-    ax1.set_xlabel('경도 (가짜)')
-    ax1.set_ylabel('위도 (가짜)')
+    ax1.set_xlim(-TANK_LENGTH_M * 0.05, TANK_LENGTH_M * 1.05)
+    ax1.set_ylim(-TANK_WIDTH_M * 0.05, TANK_WIDTH_M * 1.05)
+    ax1.set_title(f'파티클 밀도 분포 (N={len(lats)})')
+    ax1.set_xlabel('수조 길이 방향 (m)')
+    ax1.set_ylabel('수조 폭 방향 (m)')
     ax1.legend(fontsize=8)
 
     # 우: H3 확률 막대 그래프

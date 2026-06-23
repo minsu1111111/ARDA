@@ -50,33 +50,45 @@ class TankDriftModel(OceanDrift):
          self._lon_min, self._lon_max) = _tank_bounds()
 
     def update(self):
-        """매 time_step마다 OpenDrift가 호출. 이류+확산 후 경계 반사 적용."""
+        """매 time_step마다 OpenDrift가 호출. 이류 → 수동확산 → 경계 반사 순서."""
         super().update()
+        self._apply_diffusion()
         self._apply_tank_boundary()
 
+    def _apply_diffusion(self):
+        """
+        수동 수평 확산.
+        OpenDrift config 기반 diffusivity는 수조 스케일(1e-6도 단위)에서
+        부동소수점 정밀도 손실로 동작하지 않아 직접 구현.
+        """
+        n = len(self.elements.lon)
+        if n == 0:
+            return
+        std_m = math.sqrt(2.0 * HORIZONTAL_DIFFUSIVITY)  # dt=1s 기준 m 단위 표준편차
+        lat_per_m = 1.0 / 111000.0
+        lon_per_m = 1.0 / (111000.0 * math.cos(math.radians(TANK_ORIGIN_LAT)))
+        self.elements.lat += np.random.normal(0.0, std_m * lat_per_m, n)
+        self.elements.lon += np.random.normal(0.0, std_m * lon_per_m, n)
+
+    @staticmethod
+    def _reflect_1d(vals: np.ndarray, vmin: float, vmax: float) -> np.ndarray:
+        """
+        모듈로 반사: 몇 번을 벽 밖으로 나가도 정확히 반사.
+        period = 2*(vmax-vmin) 기준으로 삼각파 접기.
+        단순 2*boundary 공식은 한 스텝 이동거리 > 수조 크기 시 벽에 쌓임.
+        """
+        span = vmax - vmin
+        v = vals - vmin                 # [0, ...] 기준으로 이동
+        v = v % (2 * span)              # 주기 2L 로 wrap
+        over = v > span
+        v[over] = 2 * span - v[over]    # 후반부 반사
+        return v + vmin
+
     def _apply_tank_boundary(self):
-        """
-        수조 벽 충돌: 반사 후 클램프 2단계.
-        클램프만 쓰면 파티클이 벽면에 쌓이는 artifact 발생.
-        """
-        lon = self.elements.lon
-        lat = self.elements.lat
-
-        # X 경계 (경도, 수조 길이 방향)
-        over_right = lon > self._lon_max
-        under_left = lon < self._lon_min
-        lon[over_right] = 2 * self._lon_max - lon[over_right]
-        lon[under_left] = 2 * self._lon_min - lon[under_left]
-
-        # Y 경계 (위도, 수조 폭 방향)
-        over_top = lat > self._lat_max
-        under_bot = lat < self._lat_min
-        lat[over_top] = 2 * self._lat_max - lat[over_top]
-        lat[under_bot] = 2 * self._lat_min - lat[under_bot]
-
-        # 2차 안전망: 반사 후에도 초과 시 클램프
-        self.elements.lon = np.clip(lon, self._lon_min, self._lon_max)
-        self.elements.lat = np.clip(lat, self._lat_min, self._lat_max)
+        self.elements.lon = self._reflect_1d(
+            self.elements.lon, self._lon_min, self._lon_max)
+        self.elements.lat = self._reflect_1d(
+            self.elements.lat, self._lat_min, self._lat_max)
 
     @staticmethod
     def apply_tank_config(model: 'TankDriftModel') -> None:
@@ -90,4 +102,5 @@ class TankDriftModel(OceanDrift):
         """
         model.set_config('general:use_auto_landmask', False)
         model.set_config('environment:fallback:land_binary_mask', 0)
-        model.set_config('drift:horizontal_diffusivity', HORIZONTAL_DIFFUSIVITY)
+        # 수동 확산(_apply_diffusion)을 사용하므로 OpenDrift 내부 확산은 비활성화
+        model.set_config('drift:horizontal_diffusivity', 0)
