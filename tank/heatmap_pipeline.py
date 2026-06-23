@@ -9,9 +9,22 @@ import math
 import os
 from datetime import datetime, timedelta
 
+import matplotlib.font_manager as fm
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
+
+# 한국어 폰트 설정 (Windows: 맑은 고딕, Linux/Pi: NanumGothic 우선)
+def _setup_korean_font():
+    candidates = ['Malgun Gothic', 'NanumGothic', 'NanumBarunGothic', 'AppleGothic']
+    available = {f.name for f in fm.fontManager.ttflist}
+    for font in candidates:
+        if font in available:
+            plt.rcParams['font.family'] = font
+            break
+    plt.rcParams['axes.unicode_minus'] = False
+
+_setup_korean_font()
 
 from config import (
     ENTRY_RADIUS_M,
