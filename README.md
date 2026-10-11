@@ -6,6 +6,7 @@
 인천대학교 임베디드시스템공학과 · 지도교수 최병조
 
 팀 전체 소개: [ARDA-2026](https://github.com/ARDA-2026)
+최종 실행 코드: [jetson-detector-bridge](https://github.com/ARDA-2026/jetson-detector-bridge) (Jetson 센서 통합) · [arda-algo_general](https://github.com/ARDA-2026/arda-algo_general) (표류 예측·관제 웹·드론 제어)
 
 ---
 
@@ -74,11 +75,16 @@ flowchart LR
 
 ## 내 역할
 
-- 관제 웹–드론 연동 및 비행 제어: Waypoint를 이륙 지점 기준 상대 변위 명령으로 변환, Tello 부호 매핑·드리프트·배터리 실측
-- 시연 환경 구축
-- 초기 수조 표류 예측 검증 파이프라인 구현 (이 저장소): OpenDrift Custom Reader, 반사 경계·수동 확산, H3 격자화
+**관제 웹–드론 연동 및 비행 제어 · 시연 환경 구축** (팀 구성 기준)
 
-<!-- TODO: 역할 표기 확인 필요 -->
+- 관제 서버 연동 ([arda-algo_general](https://github.com/ARDA-2026/arda-algo_general))
+  - Jetson이 확정 좌표를 보내는 `POST /report`, 입수 지점 확정 `POST /fall-detected` 엔드포인트 구현
+  - 낙하 판정 전 대기 상태 게이트, 웹 UI 리셋 버튼 추가
+  - 열화상 실제 온도 / YOLO 입력 화면 웹 토글
+  - 네이버 Static Map 배경 캐시로 온·오프라인 지도 영역 일치
+- 센서 연동 ([thermal-camera](https://github.com/ARDA-2026/thermal-camera)): 레이더·서보 연동 메인 흐름과 Jetson 환경 설정
+- 드론 비행 제어: Waypoint를 이륙 지점 기준 상대 변위 명령으로 변환, Tello 부호 매핑·드리프트·배터리 실측
+- 초기 수조 표류 예측 검증 파이프라인 ([algo_testbed](https://github.com/ARDA-2026/algo_testbed), 이 저장소): OpenDrift Custom Reader, 반사 경계·수동 확산, H3 격자화
 
 ## 시연 영상 · 사진
 
@@ -91,7 +97,7 @@ flowchart LR
 
 # 상세: 초기 수조 표류 예측 검증 파이프라인
 
-이 저장소는 강민수 담당 파트로, 프로젝트 초기에 OpenDrift 표류 예측과 Uber H3 격자화 알고리즘을 소형 수조(1m × 0.5m)에서 검증한 파이프라인입니다.
+이 저장소는 팀 저장소 [algo_testbed](https://github.com/ARDA-2026/algo_testbed)와 같은 코드로, 프로젝트 초기에 OpenDrift 표류 예측과 Uber H3 격자화 알고리즘을 소형 수조(1m × 0.5m)에서 검증한 파이프라인입니다.
 
 ---
 
